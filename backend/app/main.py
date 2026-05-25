@@ -10,7 +10,7 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-app = FastAPI(title="Company Brain", version="0.1.1")
+app = FastAPI(title="Company Brain", version="0.1.2")
 
 # Phase 0: the frontend is served from S3 (different origin from the ALB).
 # Allow all origins because (a) team-only, (b) frontend URL rotates with
@@ -30,4 +30,5 @@ async def health() -> dict[str, str]:
         "status": "ok",
         "environment": os.environ.get("ENVIRONMENT", "unknown"),
         "region": os.environ.get("AWS_REGION", "unknown"),
+        "version": app.version,
     }
