@@ -8,6 +8,7 @@ dependencies = [
     "fastapi>=0.115",
     "uvicorn[standard]>=0.34",
     "httpx>=0.27",
+    "python-multipart>=0.0.12",  # required by FastAPI for file uploads
 
     # DB
     "sqlalchemy[asyncio]>=2.0.36",

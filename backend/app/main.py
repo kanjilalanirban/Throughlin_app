@@ -12,6 +12,10 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 
+from app.api.admin.router import router as admin_router
+from app.api.ask.router import router as ask_router
+from app.api.brief.router import router as brief_router
+from app.api.see.router import router as see_router
 from app.core.config import get_settings
 from app.core.db import dispose_engine, session_factory
 from app.core.errors import register_exception_handlers
@@ -34,7 +38,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         logger.info("backend shut down cleanly")
 
 
-app = FastAPI(title="Company Brain", version="0.1.2", lifespan=lifespan)
+app = FastAPI(title="Company Brain", version="0.3.0", lifespan=lifespan)
 
 # Phase 0: allow any origin (the frontend is on S3, the API on rotating ALB DNS).
 # Phase 1: tighten to the production domain.
@@ -58,6 +62,12 @@ async def correlation_id_middleware(request: Request, call_next):  # type: ignor
 
 
 register_exception_handlers(app)
+
+# Surface routers
+app.include_router(see_router)
+app.include_router(admin_router)
+app.include_router(ask_router)
+app.include_router(brief_router)
 
 
 @app.get("/health")

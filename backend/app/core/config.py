@@ -66,6 +66,14 @@ class Settings(BaseSettings):
     anthropic_model_haiku: str = "claude-haiku-4-5-20251001"
 
     # -------------------------------------------------------------------------
+    # Integration secret ARNs (used by the admin/integrations status endpoint
+    # to report which sources have credentials populated).
+    # -------------------------------------------------------------------------
+    jira_oauth_secret_arn: str = ""
+    github_app_secret_arn: str = ""
+    hris_secret_arn: str = ""  # always empty in Phase 0 (HRIS = CSV, no secret)
+
+    # -------------------------------------------------------------------------
     # Auth (Cognito)
     # -------------------------------------------------------------------------
     cognito_user_pool_id: str = ""
@@ -174,6 +182,10 @@ def _populate_ssm_fallbacks(s: Settings) -> None:
         s.cognito_user_pool_id = _ssm_or_empty(f"{prefix}/cognito/user_pool_id", s.aws_region)
     if not s.cognito_client_id:
         s.cognito_client_id = _ssm_or_empty(f"{prefix}/cognito/client_id", s.aws_region)
+    if not s.jira_oauth_secret_arn:
+        s.jira_oauth_secret_arn = _ssm_or_empty(f"{prefix}/secrets/jira_arn", s.aws_region)
+    if not s.github_app_secret_arn:
+        s.github_app_secret_arn = _ssm_or_empty(f"{prefix}/secrets/github_arn", s.aws_region)
 
 
 @lru_cache(maxsize=1)
