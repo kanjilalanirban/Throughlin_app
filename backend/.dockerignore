@@ -16,5 +16,3 @@ htmlcov
 .idea
 .vscode
 tests
-alembic
-seed
