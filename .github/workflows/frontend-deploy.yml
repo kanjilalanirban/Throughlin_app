@@ -23,6 +23,8 @@ env:
   SSM_API_URL: /companybrain/phase0/alb/url
   SSM_FRONTEND_BUCKET: /companybrain/phase0/s3/frontend_bucket
   SSM_FRONTEND_URL: /companybrain/phase0/s3/frontend_url
+  SSM_COGNITO_USER_POOL_ID: /companybrain/phase0/cognito/user_pool_id
+  SSM_COGNITO_CLIENT_ID: /companybrain/phase0/cognito/client_id
 
 jobs:
   deploy:
@@ -48,16 +50,20 @@ jobs:
             echo "::warning::Ephemeral stack appears down (SSM parameter ${SSM_API_URL} not present). Skipping deploy. Bring the stack up and re-run this workflow."
           fi
 
-      - name: Read API URL + bucket from SSM
+      - name: Read API URL + bucket + Cognito IDs from SSM
         if: steps.check.outputs.stack_up == 'true'
         id: ssm
         run: |
           API_URL=$(aws ssm get-parameter --name "${SSM_API_URL}" --query Parameter.Value --output text)
           BUCKET=$(aws ssm get-parameter --name "${SSM_FRONTEND_BUCKET}" --query Parameter.Value --output text)
           FRONTEND_URL=$(aws ssm get-parameter --name "${SSM_FRONTEND_URL}" --query Parameter.Value --output text)
+          COGNITO_POOL=$(aws ssm get-parameter --name "${SSM_COGNITO_USER_POOL_ID}" --query Parameter.Value --output text)
+          COGNITO_CLIENT=$(aws ssm get-parameter --name "${SSM_COGNITO_CLIENT_ID}" --query Parameter.Value --output text)
           echo "api_url=${API_URL}" >> $GITHUB_OUTPUT
           echo "bucket=${BUCKET}" >> $GITHUB_OUTPUT
           echo "frontend_url=${FRONTEND_URL}" >> $GITHUB_OUTPUT
+          echo "cognito_pool=${COGNITO_POOL}" >> $GITHUB_OUTPUT
+          echo "cognito_client=${COGNITO_CLIENT}" >> $GITHUB_OUTPUT
 
       - uses: pnpm/action-setup@v4
         if: steps.check.outputs.stack_up == 'true'
@@ -77,6 +83,9 @@ jobs:
         working-directory: frontend
         env:
           VITE_API_URL: ${{ steps.ssm.outputs.api_url }}
+          VITE_COGNITO_USER_POOL_ID: ${{ steps.ssm.outputs.cognito_pool }}
+          VITE_COGNITO_CLIENT_ID: ${{ steps.ssm.outputs.cognito_client }}
+          VITE_AWS_REGION: ${{ env.AWS_REGION }}
         run: |
           pnpm install --frozen-lockfile
           pnpm build
